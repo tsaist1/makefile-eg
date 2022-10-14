@@ -26,7 +26,7 @@ arm64_OBJS        := $(SRCS:$(SRC_DIR)/%.c=arm64/%.o)
 
 CC                := clang
 CFLAGS            := -Wall -Wextra -Werror
-CPPFLAGS          := $(addprefix -I,$(INCS)) -MMD -MP
+CPPFLAGS          := $(addprefix -I,$(INCS)) -MMD
 x86_LDFLAGS       := $(addprefix -L,$(dir $(x86_LIBS_TARGET)))
 arm64_LDFLAGS     := $(addprefix -L,$(dir $(arm64_LIBS_TARGET)))
 x86_LDLIBS        := $(addprefix -l,$(x86_LIBS))
