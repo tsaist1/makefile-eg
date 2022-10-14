@@ -1,51 +1,36 @@
 # @author   clemedon (Clément Vidon)
 ####################################### BEG_5 ####
 
-NAME        := icecream
+x86_LIBS   := arom_x86 base_x86 m
+arm64_LIBS := arom_arm64 base_arm64 m
 
-#------------------------------------------------#
-#   INGREDIENTS                                  #
-#------------------------------------------------#
-# LIBS        libraries to be used
-# LIBS_TARGET libraries to be built
-#
-# INCS        header file locations
-#
-# SRC_DIR     source directory
-# SRCS        source files
-#
-# BUILD_DIR   build directory
-# OBJS        object files
-# DEPS        dependency files
-#
-# CC          compiler
-# CFLAGS      compiler flags
-# CPPFLAGS    preprocessor flags
-# LDFLAGS     linker flags
-# LDLIBS      libraries name
+x86_LIBS_TARGET :=            \
+	lib/libarom/libarom_x86.a \
+	lib/libbase/libbase_x86.a \
 
-LIBS        := arom base m
-LIBS_TARGET :=            \
-	lib/libarom/libarom.a \
-	lib/libbase/libbase.a
+arm64_LIBS_TARGET :=            \
+	lib/libarom/libarom_arm64.a \
+	lib/libbase/libbase_arm64.a \
 
-INCS        := include    \
+INCS := include    \
 	lib/libarom/include   \
 	lib/libbase/include
 
-SRC_DIR     := src
-SRCS        := main.c
-SRCS        := $(SRCS:%=$(SRC_DIR)/%)
+SRC_DIR           := src
+SRCS              := main.c
+SRCS              := $(SRCS:%=$(SRC_DIR)/%)
 
-BUILD_DIR   := .build
-OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-DEPS        := $(OBJS:.o=.d)
+x86_OBJS          := $(SRCS:$(SRC_DIR)/%.c=x86/%.o)
+arm64_OBJS        := $(SRCS:$(SRC_DIR)/%.c=arm64/%.o)
 
-CC          := clang
-CFLAGS      := -Wall -Wextra -Werror
-CPPFLAGS    := $(addprefix -I,$(INCS)) -MMD -MP
-LDFLAGS     := $(addprefix -L,$(dir $(LIBS_TARGET)))
-LDLIBS      := $(addprefix -l,$(LIBS))
+
+CC                := clang
+CFLAGS            := -Wall -Wextra -Werror
+CPPFLAGS          := $(addprefix -I,$(INCS)) -MMD -MP
+x86_LDFLAGS       := $(addprefix -L,$(dir $(x86_LIBS_TARGET)))
+arm64_LDFLAGS     := $(addprefix -L,$(dir $(arm64_LIBS_TARGET)))
+x86_LDLIBS        := $(addprefix -l,$(x86_LIBS))
+arm64_LDLIBS      := $(addprefix -l,$(arm64_LIBS))
 
 #------------------------------------------------#
 #   UTENSILS                                     #
@@ -54,8 +39,8 @@ LDLIBS      := $(addprefix -l,$(LIBS))
 # MAKEFLAGS make flags
 # DIR_DUP   duplicate directory tree
 
-RM          := rm -f
-MAKEFLAGS   += --silent --no-print-directory
+RM          := rm -rf
+# MAKEFLAGS   += --silent --no-print-directory
 DIR_DUP     = mkdir -p $(@D)
 
 #------------------------------------------------#
@@ -70,26 +55,37 @@ DIR_DUP     = mkdir -p $(@D)
 # re        remake default goal
 # run       run the program
 # info      print the default goal recipe
+all: universal x86b arm64b
 
-all: $(NAME)
+x86b: $(x86_OBJS) $(x86_LIBS_TARGET)
+	$(CC) $(x86_LDFLAGS) $(x86_OBJS) $(x86_LDLIBS) -o x86b -target x86_64-apple-macos12
 
-$(NAME): $(OBJS) $(LIBS_TARGET)
-	$(CC) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(NAME)
-	$(info CREATED $(NAME))
+arm64b: $(arm64_OBJS) $(arm64_LIBS_TARGET)
+	$(CC) $(arm64_LDFLAGS) $(arm64_OBJS) $(arm64_LDLIBS) -o arm64b -target arm64-apple-macos12
 
-$(LIBS_TARGET):
+universal: x86b arm64b
+	lipo -create -output universal arm64b x86b
+
+$(x86_LIBS_TARGET):
 	$(MAKE) -C $(@D)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(arm64_LIBS_TARGET):
+	$(MAKE) -C $(@D)
+
+x86/%.o: $(SRC_DIR)/%.c
 	$(DIR_DUP)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -arch x86_64 -c -o $@ $<
 	$(info CREATED $@)
 
--include $(DEPS)
+arm64/%.o: $(SRC_DIR)/%.c
+	$(DIR_DUP)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -arch arm64 -c -o $@ $<
+	$(info CREATED $@)
 
 clean:
-	for f in $(dir $(LIBS_TARGET)); do $(MAKE) -C $$f clean; done
-	$(RM) $(OBJS) $(DEPS)
+	for f in $(dir $(x86_LIBS_TARGET)); do $(MAKE) -C $$f clean; done
+	for f in $(dir $(arm64_LIBS_TARGET)); do $(MAKE) -C $$f clean; done
+	$(RM) $(x86_OBJS) $(arm64_OBJS) x86 arm64 x86b arm64b universal *.a
 
 fclean: clean
 	for f in $(dir $(LIBS_TARGET)); do $(MAKE) -C $$f fclean; done
@@ -102,11 +98,6 @@ re:
 info-%:
 	$(MAKE) --dry-run --always-make $* | grep -v "info"
 
-#------------------------------------------------#
-#   SPEC                                         #
-#------------------------------------------------#
-
 .PHONY: clean fclean re
-.SILENT:
 
 ####################################### END_5 ####

@@ -1,8 +1,6 @@
 # @author   clemedon (Clément Vidon)
 ####################################### BEG_4 ####
 
-NAME        := libbase.a
-
 #------------------------------------------------#
 #   INGREDIENTS                                  #
 #------------------------------------------------#
@@ -17,21 +15,21 @@ NAME        := libbase.a
 # CFLAGS    compiler flags
 # CPPFLAGS  preprocessor flags
 
-SRC_DIR     := src
-BUILD_DIR   := .build
-SRCS        := \
+SRC_DIR           := src
+SRCS              := \
 	milk.c \
 	water.c
 
-SRCS        := $(SRCS:%=$(SRC_DIR)/%)
-OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-DEPS        := $(OBJS:.o=.d)
+SRCS              := $(SRCS:%=$(SRC_DIR)/%)
+x86_OBJS          := $(SRCS:$(SRC_DIR)/%.c=x86/%.o)
+arm64_OBJS        := $(SRCS:$(SRC_DIR)/%.c=arm64/%.o)
+# DEPS              := $(OBJS:.o=.d)
 
-CC          := clang
-CFLAGS      := -Wall -Wextra -Werror
-CPPFLAGS    := -MMD -MP -I include
-AR          := ar
-ARFLAGS     := -r -c -s
+CC                := clang
+CFLAGS            := -Wall -Wextra -Werror
+CPPFLAGS          := -MMD -MP -I include
+AR                := ar
+ARFLAGS           := -r -c -s
 
 #------------------------------------------------#
 #   UTENSILS                                     #
@@ -40,8 +38,8 @@ ARFLAGS     := -r -c -s
 # MAKEFLAGS make flags
 # DIR_DUP   duplicate directory tree
 
-RM          := rm -f
-MAKEFLAGS   += --no-print-directory
+RM          := rm -rf
+# MAKEFLAGS   += --no-print-directory
 DIR_DUP     = mkdir -p $(@D)
 
 #------------------------------------------------#
@@ -54,24 +52,27 @@ DIR_DUP     = mkdir -p $(@D)
 # fclean    remove .o + binary
 # re        remake default goal
 
-all: $(NAME)
+all: x86 arm64
 
-$(NAME): $(OBJS)
-	$(AR) $(ARFLAGS) $(NAME) $(OBJS)
-	$(info CREATED $@)
+x86: $(x86_OBJS)
+	$(AR) $(ARFLAGS) libbase_x86.a $(x86_OBJS)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+arm64: $(arm64_OBJS)
+	$(AR) $(ARFLAGS) libbase_arm64.a $(arm64_OBJS)
+	
+x86/%.o: $(SRC_DIR)/%.c
 	$(DIR_DUP)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
-	$(info CREATED $@)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -arch x86_64 -c $< -o $@
 
--include $(DEPS)
+arm64/%.o: $(SRC_DIR)/%.c
+	$(DIR_DUP)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -arch arm64 -c $< -o $@
 
 clean:
-	$(RM) $(OBJS) $(DEPS)
+	$(RM) $(arm64_OBJS) $(x86_OBJS) x86 arm64 *.a
 
 fclean: clean
-	$(RM) $(NAME)
+	$(RM) x86 arm64
 
 re:
 	$(MAKE) fclean
@@ -82,6 +83,6 @@ re:
 #------------------------------------------------#
 
 .PHONY: clean fclean re
-.SILENT:
+# .SILENT:
 
 ####################################### END_4 ####
