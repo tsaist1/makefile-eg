@@ -1,7 +1,5 @@
-# @author   clemedon (Clément Vidon)
 ####################################### BEG_4 ####
-
-NAME        := libbase.a
+# @author   clemedon (Clément Vidon)
 
 #------------------------------------------------#
 #   INGREDIENTS                                  #
@@ -54,34 +52,35 @@ DIR_DUP     = mkdir -p $(@D)
 # fclean    remove .o + binary
 # re        remake default goal
 
-all: $(NAME)
+all: lx86.a larm64.a $(OBJS)
 
-$(NAME): $(OBJS)
-	$(AR) $(ARFLAGS) $(NAME) $(OBJS)
-	$(info CREATED $@)
+lx86.a larm64.a: $(OBJS)
+	$(AR) $(ARFLAGS) lx86.a $(OBJS)
+	$(AR) $(ARFLAGS) larm64.a $(OBJS)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD_DIR)/%.o:: $(SRC_DIR)/%.c
 	$(DIR_DUP)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
-	$(info CREATED $@)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -arch x86_64 -c $< -o $@
+	$(info x86 $@)
+
+$(BUILD_DIR)/%.o:: $(SRC_DIR)/%.c
+	$(DIR_DUP)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -arch arm64 -c $< -o $@
+	$(info arm64 $@)
 
 -include $(DEPS)
 
 clean:
-	$(RM) $(OBJS) $(DEPS)
-
-fclean: clean
-	$(RM) $(NAME)
-
+	$(RM) $(OBJS) $(DEPS) *.a
 re:
-	$(MAKE) fclean
+	$(MAKE) clean
 	$(MAKE) all
 
 #------------------------------------------------#
 #   SPEC                                         #
 #------------------------------------------------#
 
-.PHONY: clean fclean re
+.PHONY: all clean fclean re
 .SILENT:
 
 ####################################### END_4 ####

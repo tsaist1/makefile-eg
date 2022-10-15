@@ -68,13 +68,9 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 -include $(DEPS)
 
 clean:
-	$(RM) $(OBJS) $(DEPS)
-
-fclean: clean
-	$(RM) $(NAME)
-
+	$(RM) $(OBJS) $(DEPS) *.a	
 re:
-	$(MAKE) fclean
+	$(MAKE) clean
 	$(MAKE) all
 
 #------------------------------------------------#

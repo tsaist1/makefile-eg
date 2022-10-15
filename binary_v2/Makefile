@@ -83,7 +83,6 @@ $(LIBS_TARGET):
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(DIR_DUP)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -arch x86_64 -c -o $@ $<
-	$(CC) $(CFLAGS) $(CPPFLAGS) -arch arm64 -c -o $@ $<
 	$(info CREATED $@)
 
 -include $(DEPS)
