@@ -22,7 +22,8 @@ SRCS        := \
 	water.c
 
 SRCS        := $(SRCS:%=$(SRC_DIR)/%)
-OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+ARM_OBJS        := $(SRCS:$(SRC_DIR)/%.c=arm/%.o)
+X86_OBJS        := $(SRCS:$(SRC_DIR)/%.c=x86/%.o)
 DEPS        := $(OBJS:.o=.d)
 
 CC          := clang
@@ -52,18 +53,20 @@ DIR_DUP     = mkdir -p $(@D)
 # fclean    remove .o + binary
 # re        remake default goal
 
-all: lx86.a larm64.a $(OBJS)
+all: lx86.a larm64.a
 
-lx86.a larm64.a: $(OBJS)
-	$(AR) $(ARFLAGS) lx86.a $(OBJS)
-	$(AR) $(ARFLAGS) larm64.a $(OBJS)
+lx86.a:: $(X86_OBJS)
+	$(AR) $(ARFLAGS) lx86.a $(X86_OBJS)
+	
+larm64.a:: $(ARM_OBJS)
+	$(AR) $(ARFLAGS) larm64.a $(ARM_OBJS)
 
-$(BUILD_DIR)/%.o:: $(SRC_DIR)/%.c
+x86/%.o:: $(SRC_DIR)/%.c
 	$(DIR_DUP)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -arch x86_64 -c $< -o $@
 	$(info x86 $@)
 
-$(BUILD_DIR)/%.o:: $(SRC_DIR)/%.c
+arm/%.o:: $(SRC_DIR)/%.c
 	$(DIR_DUP)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -arch arm64 -c $< -o $@
 	$(info arm64 $@)
@@ -71,7 +74,7 @@ $(BUILD_DIR)/%.o:: $(SRC_DIR)/%.c
 -include $(DEPS)
 
 clean:
-	$(RM) $(OBJS) $(DEPS) *.a
+	$(RM) $(X86_OBJS) $(ARM_OBJS) $(DEPS) *.a
 re:
 	$(MAKE) clean
 	$(MAKE) all
