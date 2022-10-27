@@ -2,3 +2,8 @@ This is a demostration package for GNU Automake
 Type 'info Automake' to read the Automake manual
 
 ./configure --build=arm64-apple-darwin --host=x86_64-apple-darwin
+
+Build:
+1. autoreconf --install
+2. ./configure
+3. make
