@@ -28,7 +28,7 @@ DEPS        := $(OBJS:.o=.d)
 
 CC          := clang
 CFLAGS      := -Wall -Wextra -Werror
-CPPFLAGS    := -MMD -MP -I include
+CPPFLAGS    := -I include
 AR          := ar
 ARFLAGS     := -r -c -s
 
@@ -39,7 +39,7 @@ ARFLAGS     := -r -c -s
 # MAKEFLAGS make flags
 # DIR_DUP   duplicate directory tree
 
-RM          := rm -f
+RM          := rm -rf
 MAKEFLAGS   += --no-print-directory
 DIR_DUP     = mkdir -p $(@D)
 
@@ -53,13 +53,13 @@ DIR_DUP     = mkdir -p $(@D)
 # fclean    remove .o + binary
 # re        remake default goal
 
-all: lx86.a larm64.a
+all: x86/lx86.a arm/larm64.a
 
-lx86.a:: $(X86_OBJS)
-	$(AR) $(ARFLAGS) lx86.a $(X86_OBJS)
-	
-larm64.a:: $(ARM_OBJS)
-	$(AR) $(ARFLAGS) larm64.a $(ARM_OBJS)
+x86/lx86.a:: $(X86_OBJS)
+	$(AR) $(ARFLAGS) x86/lx86.a $(X86_OBJS)
+
+arm/larm64.a:: $(ARM_OBJS)
+	$(AR) $(ARFLAGS) arm/larm64.a $(ARM_OBJS)
 
 x86/%.o:: $(SRC_DIR)/%.c
 	$(DIR_DUP)
@@ -71,10 +71,9 @@ arm/%.o:: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -arch arm64 -c $< -o $@
 	$(info arm64 $@)
 
--include $(DEPS)
 
 clean:
-	$(RM) $(X86_OBJS) $(ARM_OBJS) $(DEPS) *.a
+	$(RM) $(X86_OBJS) $(ARM_OBJS) $(DEPS) *.a *.d
 re:
 	$(MAKE) clean
 	$(MAKE) all
@@ -84,6 +83,5 @@ re:
 #------------------------------------------------#
 
 .PHONY: all clean fclean re
-.SILENT:
 
 ####################################### END_4 ####

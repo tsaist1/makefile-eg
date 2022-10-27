@@ -55,7 +55,7 @@ LDLIBS      := $(addprefix -l,$(LIBS))
 # DIR_DUP   duplicate directory tree
 
 RM          := rm -f
-MAKEFLAGS   += --silent --no-print-directory
+
 DIR_DUP     = mkdir -p $(@D)
 
 #------------------------------------------------#
@@ -107,6 +107,5 @@ info-%:
 #------------------------------------------------#
 
 .PHONY: clean fclean re
-.SILENT:
 
 ####################################### END_5 ####
