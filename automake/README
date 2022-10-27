@@ -1,7 +1,7 @@
 This is a demostration package for GNU Automake
 Type 'info Automake' to read the Automake manual
 
-./configure --build=arm64-apple-darwin --host=x86_64-apple-darwin
+./configure --build arm64-apple-darwin --host x86_64-apple-darwin --prefix=$(PWD) --disable-dependency-tracking
 
 Build:
 1. autoreconf --install
